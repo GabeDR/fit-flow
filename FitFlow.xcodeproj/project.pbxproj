@@ -29,9 +29,22 @@
 		22CBE4012D7A783E0057637D /* FitFlowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitFlowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		22324CD52D7D0B35008A3FCF /* Exceptions for "FitFlow" folder in "FitFlow" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 22CBE3E12D7A783C0057637D /* FitFlow */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		22CBE3E42D7A783C0057637D /* FitFlow */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				22324CD52D7D0B35008A3FCF /* Exceptions for "FitFlow" folder in "FitFlow" target */,
+			);
 			path = FitFlow;
 			sourceTree = "<group>";
 		};
