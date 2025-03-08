@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24C5073e" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="CompletedSet" representedClassName="CompletedSet" syncable="YES" codeGenerationType="class">
+        <attribute name="completedDistance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="completedDuration" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="completedReps" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="completedWeight" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="performedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="setGroup" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CompletedSetGroup" inverseName="completedSets" inverseEntity="CompletedSetGroup"/>
+        <relationship name="template" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ExerciseSet" inverseName="completedSets" inverseEntity="ExerciseSet"/>
+    </entity>
+    <entity name="CompletedSetGroup" representedClassName="CompletedSetGroup" syncable="YES" codeGenerationType="class">
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="completedSets" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CompletedSet" inverseName="setGroup" inverseEntity="CompletedSet"/>
+        <relationship name="template" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ExerciseSetGroup" inverseName="completedSetGroups" inverseEntity="ExerciseSetGroup"/>
+        <relationship name="workout" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CompletedWorkout" inverseName="completedSetGroups" inverseEntity="CompletedWorkout"/>
+    </entity>
+    <entity name="CompletedWorkout" representedClassName="CompletedWorkout" syncable="YES" codeGenerationType="class">
+        <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="completedSetGroups" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CompletedSetGroup" inverseName="workout" inverseEntity="CompletedSetGroup"/>
+        <relationship name="routine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WorkoutRoutine" inverseName="completedWorkouts" inverseEntity="WorkoutRoutine"/>
+    </entity>
+    <entity name="Exercise" representedClassName="Exercise" syncable="YES" codeGenerationType="class">
+        <attribute name="category" optional="YES" attributeType="String"/>
+        <attribute name="cooldownOrder" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="descrip" optional="YES" attributeType="String"/>
+        <attribute name="equipment" optional="YES" attributeType="String"/>
+        <attribute name="instructionsText" optional="YES" attributeType="String"/>
+        <attribute name="instructionsVideoURL" optional="YES" attributeType="String"/>
+        <attribute name="isCustom" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="mainOrder" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="muscleGroup" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="warmupOrder" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="routineCooldown" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="WorkoutRoutine" inverseName="cooldownExercises" inverseEntity="WorkoutRoutine"/>
+        <relationship name="routineMain" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="WorkoutRoutine" inverseName="mainExercises" inverseEntity="WorkoutRoutine"/>
+        <relationship name="routineWarmup" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="WorkoutRoutine" inverseName="warmupExercises" inverseEntity="WorkoutRoutine"/>
+        <relationship name="setGroups" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ExerciseSetGroup" inverseName="exercise" inverseEntity="ExerciseSetGroup"/>
+    </entity>
+    <entity name="ExerciseSet" representedClassName="ExerciseSet" syncable="YES" codeGenerationType="class">
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="targetDistance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="targetDuration" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="targetReps" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="targetWeight" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="completedSets" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CompletedSet" inverseName="template" inverseEntity="CompletedSet"/>
+        <relationship name="setGroup" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ExerciseSetGroup" inverseName="sets" inverseEntity="ExerciseSetGroup"/>
+    </entity>
+    <entity name="ExerciseSetGroup" representedClassName="ExerciseSetGroup" syncable="YES" codeGenerationType="class">
+        <attribute name="restBetweenSets" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="targetSets" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="completedSetGroups" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CompletedSetGroup" inverseName="template" inverseEntity="CompletedSetGroup"/>
+        <relationship name="exercise" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Exercise" inverseName="setGroups" inverseEntity="Exercise"/>
+        <relationship name="sets" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ExerciseSet" inverseName="setGroup" inverseEntity="ExerciseSet"/>
+    </entity>
+    <entity name="ScheduleDay" representedClassName="ScheduleDay" syncable="YES" codeGenerationType="class">
+        <attribute name="dayOfWeek" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="routines" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="WorkoutRoutine" inverseName="scheduledDays" inverseEntity="WorkoutRoutine"/>
+    </entity>
+    <entity name="WorkoutRoutine" representedClassName="WorkoutRoutine" syncable="YES" codeGenerationType="class">
+        <attribute name="createdDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isFavorite" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastPerformedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="completedWorkouts" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CompletedWorkout" inverseName="routine" inverseEntity="CompletedWorkout"/>
+        <relationship name="cooldownExercises" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Exercise" inverseName="routineCooldown" inverseEntity="Exercise"/>
+        <relationship name="mainExercises" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Exercise" inverseName="routineMain" inverseEntity="Exercise"/>
+        <relationship name="scheduledDays" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ScheduleDay" inverseName="routines" inverseEntity="ScheduleDay"/>
+        <relationship name="warmupExercises" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Exercise" inverseName="routineWarmup" inverseEntity="Exercise"/>
+    </entity>
+</model>

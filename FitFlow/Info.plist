@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>processing</string>
+        <string>audio</string>
+        <string>remote-notification</string>
+    </array>
+    <key>NSHealthShareUsageDescription</key>
+    <string>FitFlow needs access to your health data to track your workouts</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>FitFlow needs permission to save your workout data</string>
+</dict>
+</plist>
