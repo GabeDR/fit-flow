@@ -1,17 +1,12 @@
-//
-//  ExercisesView.swift
-//  FitFlow
-//
-//  Created by Gabriel Duarte on 3/6/25.
-//
-
-import SwiftUI
-
+import SwiftUICore
 struct ExercisesView: View {
+    @EnvironmentObject var dataController: DataController
     @StateObject private var viewModel = RoutineViewModel()
     @State private var showingAddCustomExercise = false
     @State private var showingExerciseDetail = false
     @State private var selectedExercise: Exercise?
+    @State private var isRefreshing = false
+    @State private var showingRefreshAlert = false
     
     var body: some View {
         NavigationView {
@@ -36,11 +31,23 @@ struct ExercisesView: View {
             .navigationTitle("Exercises")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showingAddCustomExercise = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .foregroundColor(AppTheme.textPrimary)
+                    HStack {
+                        // Refresh button to fetch more exercises
+                        Button {
+                            showingRefreshAlert = true
+                        } label: {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
+                        .disabled(isRefreshing)
+                        
+                        // Add custom exercise button
+                        Button {
+                            showingAddCustomExercise = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
                     }
                 }
             }
@@ -51,6 +58,78 @@ struct ExercisesView: View {
                     viewModel.fetchExercises()
                 }
             }
+            // Present exercise detail view
+            .sheet(isPresented: $showingExerciseDetail) {
+                if let exercise = selectedExercise {
+                    ExerciseDetailView(exercise: exercise)
+                }
+            }
+            .alert("Refresh Exercise Database", isPresented: $showingRefreshAlert) {
+                Button("Refresh All", role: .destructive) {
+                    refreshExercises()
+                }
+                Button("Refresh One Type", role: .none) {
+                    refreshOneExerciseType()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Would you like to refresh the exercise database from API Ninjas?")
+            }
+        }
+        .overlay {
+            // Show loading indicator when refreshing
+            if isRefreshing {
+                ZStack {
+                    Color.black.opacity(0.4)
+                    
+                    VStack(spacing: 15) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .tint(Color(hex: "CDCDAB"))
+                        
+                        Text("Updating exercises...")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                    }
+                    .padding(20)
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(10)
+                }
+                .edgesIgnoringSafeArea(.all)
+            }
+        }
+        .onAppear {
+            viewModel.fetchExercises()
+        }
+    }
+    
+    // Refresh all exercises from API
+    private func refreshExercises() {
+        guard !isRefreshing else { return }
+        
+        isRefreshing = true
+        
+        ExerciseAPIService.shared.importAllExercises { count in
+            viewModel.fetchExercises()
+            isRefreshing = false
+        }
+    }
+    
+    // Refresh just one type of exercise
+    private func refreshOneExerciseType() {
+        guard !isRefreshing else { return }
+        
+        // Pick a random type to refresh
+        let types = ["cardio", "strength", "stretching"]
+        let randomType = types.randomElement() ?? "strength"
+        
+        isRefreshing = true
+        ExerciseAPIService.shared.fetchExercises(type: randomType)
+        
+        // Wait a few seconds then update the UI
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            viewModel.fetchExercises()
+            isRefreshing = false
         }
     }
     
@@ -179,8 +258,22 @@ struct ExercisesView: View {
                             .font(AppTheme.captionFont)
                             .foregroundColor(AppTheme.textSecondary)
                         
-                        if let eq = exercise.equipment, !eq.isEmpty {
+                        if let eq = exercise.equipment, !eq.isEmpty, eq != "None" {
+                            Text("•")
+                                .font(AppTheme.captionFont)
+                                .foregroundColor(AppTheme.textSecondary)
+                            
                             Text(eq)
+                                .font(AppTheme.captionFont)
+                                .foregroundColor(AppTheme.textSecondary)
+                        }
+                        
+                        if let mg = exercise.muscleGroup, !mg.isEmpty {
+                            Text("•")
+                                .font(AppTheme.captionFont)
+                                .foregroundColor(AppTheme.textSecondary)
+                            
+                            Text(mg)
                                 .font(AppTheme.captionFont)
                                 .foregroundColor(AppTheme.textSecondary)
                         }
@@ -188,6 +281,7 @@ struct ExercisesView: View {
                 }
                 
                 Spacer()
+                
                 Image(systemName: "chevron.right")
                     .foregroundColor(AppTheme.textSecondary)
             }
@@ -232,74 +326,92 @@ struct ExercisesView: View {
     }
 }
 
-// MARK: - Preview
-#Preview {
-    ExercisesView()
-        .environmentObject(DataController.preview)
-}
-
-// MARK: - Minimal ExerciseDetailView
+// Enhanced ExerciseDetailView
 struct ExerciseDetailView: View {
     let exercise: Exercise
     
     var body: some View {
-        VStack(spacing: 16) {
-            Text(exercise.name ?? "Unknown Exercise")
-                .font(.title)
-                .padding(.bottom, 4)
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Exercise name
+                    Text(exercise.name ?? "Unknown Exercise")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding(.bottom, 4)
+                    
+                    // Description
+                    if let description = exercise.descrip, !description.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Description")
+                                .font(.headline)
+                            
+                            Text(description)
+                                .font(.body)
+                        }
+                        .padding()
+                        .background(AppTheme.secondaryBackground.opacity(0.5))
+                        .cornerRadius(AppTheme.cornerRadius)
+                    }
+                    
+                    // Metadata
+                    HStack(spacing: 15) {
+                        metadataCard(title: "Category", value: exercise.category ?? "Unknown", icon: "figure.strengthtraining.traditional")
+                        
+                        metadataCard(title: "Muscle Group", value: exercise.muscleGroup ?? "Unknown", icon: "figure.mixed.cardio")
+                    }
+                    
+                    HStack(spacing: 15) {
+                        metadataCard(title: "Equipment", value: exercise.equipment ?? "None", icon: "dumbbell")
+                        
+                        // Placeholder for difficulty (not in current model)
+                        metadataCard(title: "Type", value: exercise.isCustom ? "Custom" : "Standard", icon: "star")
+                    }
+                    
+                    // Instructions
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Instructions")
+                            .font(.headline)
+                        
+                        Text(exercise.instructionsText ?? "No instructions available")
+                            .font(.body)
+                    }
+                    .padding()
+                    .background(AppTheme.secondaryBackground.opacity(0.5))
+                    .cornerRadius(AppTheme.cornerRadius)
+                }
+                .padding()
+            }
+            .navigationTitle("Exercise Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        // Dismiss
+                    }
+                }
+            }
+        }
+    }
+    
+    private func metadataCard(title: String, value: String, icon: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(AppTheme.accentColor)
+                
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(AppTheme.textSecondary)
+            }
             
-            Text(exercise.descrip ?? "No description available.")
+            Text(value)
                 .font(.body)
-            
-            // Additional detail UI here
+                .foregroundColor(AppTheme.textPrimary)
         }
         .padding()
-        .navigationTitle("Exercise Details")
-    }
-}
-
-// MARK: - Minimal CustomExerciseFormView
-struct CustomExerciseFormView: View {
-    @ObservedObject var viewModel: RoutineViewModel
-    let onSave: (Exercise) -> Void
-    
-    // Very basic fields
-    @State private var name = ""
-    @State private var description = ""
-    
-    @Environment(\.presentationMode) var presentationMode
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Exercise Info")) {
-                    TextField("Name", text: $name)
-                    TextField("Description", text: $description)
-                }
-            }
-            .navigationTitle("Create Exercise")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        let exercise = viewModel.createExercise(
-                            name: name,
-                            description: description,
-                            category: .strength,
-                            muscleGroup: .other,
-                            equipment: .none,
-                            instructions: "N/A"
-                        )
-                        onSave(exercise)
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-            }
-        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppTheme.secondaryBackground.opacity(0.5))
+        .cornerRadius(AppTheme.cornerRadius)
     }
 }

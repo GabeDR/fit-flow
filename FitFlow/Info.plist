@@ -12,5 +12,10 @@
     <string>FitFlow needs access to your health data to track your workouts</string>
     <key>NSHealthUpdateUsageDescription</key>
     <string>FitFlow needs permission to save your workout data</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
 </dict>
 </plist>

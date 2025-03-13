@@ -8,13 +8,6 @@
 import CoreData
 import Foundation
 
-/// Simple enum to replace the ambiguous `WorkoutPhase`
-enum Phase {
-    case warmup
-    case main
-    case cooldown
-}
-
 class DataController: ObservableObject {
     // The shared data controller used by the app
     static let shared = DataController()
@@ -110,7 +103,7 @@ class DataController: ObservableObject {
         let fullBodyWorkout = createWorkoutRoutine(in: context, name: "Full Body Workout",
                                                    notes: "A balanced workout targeting all major muscle groups")
         
-        // Add exercises to the routine (use our new Phase enum)
+        // Add exercises to the routine (use WorkoutPhase)
         addExerciseToRoutine(pushup, to: fullBodyWorkout, phase: .warmup, order: 0, sets: 2, reps: 10, context: context)
         addExerciseToRoutine(jogging, to: fullBodyWorkout, phase: .warmup, order: 1, sets: 1, reps: 1, duration: 300, context: context)
         
@@ -166,7 +159,7 @@ class DataController: ObservableObject {
     
     private func addExerciseToRoutine(_ exercise: NSManagedObject,
                                       to routine: NSManagedObject,
-                                      phase: Phase,
+                                      phase: WorkoutPhase,
                                       order: Int32,
                                       sets: Int16,
                                       reps: Int16,
@@ -196,7 +189,7 @@ class DataController: ObservableObject {
             set.setValue(setGroup, forKey: "setGroup")
         }
         
-        // Put the exercise into the correct phase based on our local `Phase`
+        // Put the exercise into the correct phase based on WorkoutPhase
         switch phase {
         case .warmup:
             exercise.setValue(order, forKey: "warmupOrder")
@@ -244,5 +237,68 @@ class DataController: ObservableObject {
         // Add the routines to the schedule day
         let routineSet = NSSet(array: routines)
         scheduleDay.setValue(routineSet, forKey: "routines")
+    }
+}
+
+// MARK: - Exercise JSON Loading
+extension DataController {
+    
+    // Data structure matching JSON format
+    struct ExerciseData: Codable {
+        let name: String
+        let description: String
+        let category: String
+        let muscleGroup: String
+        let equipment: String
+        let instructions: String
+    }
+    
+    // Load exercises from bundled JSON
+    func loadExercisesFromJSON() {
+        guard let url = Bundle.main.url(forResource: "exercises", withExtension: "json"),
+              let data = try? Data(contentsOf: url) else {
+            print("Could not find or load exercises.json file")
+            return
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            let exerciseData = try decoder.decode([ExerciseData].self, from: data)
+            let context = container.viewContext
+            
+            // Track count of new exercises
+            var newExercisesCount = 0
+            
+            for exerciseInfo in exerciseData {
+                // Only create if doesn't exist
+                let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "Exercise")
+                fetchRequest.predicate = NSPredicate(format: "name == %@", exerciseInfo.name)
+                
+                let count = try context.count(for: fetchRequest)
+                if count == 0 {
+                    let exercise = NSEntityDescription.insertNewObject(forEntityName: "Exercise", into: context)
+                    exercise.setValue(UUID(), forKey: "uuid")
+                    exercise.setValue(exerciseInfo.name, forKey: "name")
+                    exercise.setValue(exerciseInfo.description, forKey: "descrip")
+                    exercise.setValue(exerciseInfo.category, forKey: "category")
+                    exercise.setValue(exerciseInfo.muscleGroup, forKey: "muscleGroup")
+                    exercise.setValue(exerciseInfo.equipment, forKey: "equipment")
+                    exercise.setValue(exerciseInfo.instructions, forKey: "instructionsText")
+                    exercise.setValue(false, forKey: "isCustom")
+                    
+                    newExercisesCount += 1
+                }
+            }
+            
+            // Only save if we added new exercises
+            if newExercisesCount > 0 {
+                try context.save()
+                print("Added \(newExercisesCount) new exercises from JSON")
+            } else {
+                print("No new exercises to add from JSON")
+            }
+        } catch {
+            print("Error loading exercises from JSON: \(error)")
+        }
     }
 }
